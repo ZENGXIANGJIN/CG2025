@@ -58,7 +58,13 @@ struct skyBoxUniformBufferObject {
 };
 
 
-
+//positions of vehicles
+struct Vehicle {
+	int id;            // The instance index in SC.TI[1]
+	glm::vec3 pos;     // Current position
+	glm::vec3 velocity; // Speed and Direction as a vector
+};
+std::vector<Vehicle> fleet; // This lives as long as the app is running
 
 // MAIN ! 
 class E09 : public BaseProject {
@@ -295,7 +301,7 @@ class E09 : public BaseProject {
 		DPSZs.texturesInPool = 4;
 		DPSZs.setsInPool = 3;
 		
-std::cout << "\nLoading the scene\n\n";
+		std::cout << "\nLoading the scene\n\n";
 		if(SC.init(this, /*Npasses*/1, VDRs, PRs, "assets/models/scene.json") != 0) {
 			std::cout << "ERROR LOADING THE SCENE\n";
 			exit(0);
@@ -316,6 +322,22 @@ std::cout << "\nLoading the scene\n\n";
 
 		// Prepares for showing the FPS count
 		txt.print(1.0f, 1.0f, "FPS:",1,"CO",false,false,true,TAL_RIGHT,TRH_RIGHT,TRV_BOTTOM,{1.0f,0.0f,0.0f,1.0f},{0.8f,0.8f,0.0f,1.0f});
+
+		//init fleet
+		for (int i = 0; i < SC.TI[1].InstanceCount; i++) {
+			Vehicle v;
+			v.id = i;
+			v.pos = glm::vec3(SC.TI[1].I[i].Wm[3]); // Start at JSON position
+
+			// Give them logic based on their ID from JSON
+			if (*(SC.TI[1].I[i].id)== "bus") {
+				v.velocity = glm::vec3(3.0f, 0, 0); // Slow bus
+			} else {
+				v.velocity = glm::vec3(7.0f, 0, 0); // Fast car
+			}
+
+			fleet.push_back(v);
+		}
 	}
 	
 	// Here you create your pipelines and Descriptor Sets!
@@ -395,7 +417,7 @@ std::cout << "\nLoading the scene\n\n";
 	void updateUniformBuffer(uint32_t currentImage) {
 		static bool debounce = false;
 		static int curDebounce = 0;
-		
+
 		// handle the ESC key to exit the app
 		if(glfwGetKey(window, GLFW_KEY_ESCAPE)) {
 			glfwSetWindowShouldClose(window, GL_TRUE);
@@ -479,11 +501,34 @@ std::cout << "Playing anim: " << curAnim << "\n";
 
 		// moves the view
 		float deltaT = GameLogic();
-		
+
 		// updated the animation
 		const float SpeedUpAnimFact = 0.85f;
 		AB.Advance(deltaT * SpeedUpAnimFact);
-		
+		// --- NEW: Automated Bus Logic ---
+
+		static float busX = -20.0f;           // Starting X position
+		const float busSpeed = 5.0f;          // Speed of the bus
+		const float leftBound = -20.0f;       // Respawn point
+		const float rightBound = 20.0f;       // Despawn point
+
+		for (auto &v : fleet) {
+			// 1. Move the position
+			v.pos += v.velocity * deltaT;
+
+			// 2. Wrap around logic (The "Road" limits)
+			if (v.pos.x > 40.0f) v.pos.x = -40.0f;
+
+			// 3. Update the Actual Scene Matrix
+			float heading = atan2(v.velocity.x, v.velocity.z);
+
+			// Build the matrix and give it back to the Scene
+			SC.TI[1].I[v.id].Wm = glm::translate(glm::mat4(1.0f), v.pos) * glm::rotate(glm::mat4(1.0f), heading, glm::vec3(0,1,0)) *
+								  glm::scale(glm::mat4(1.0f), glm::vec3(1.0f)); // Or use original scale
+		}
+		// --------------------------------
+
+
 		// defines the global parameters for the uniform
 		const glm::mat4 lightView = glm::rotate(glm::mat4(1), glm::radians(-30.0f), glm::vec3(0.0f,1.0f,0.0f)) * glm::rotate(glm::mat4(1), glm::radians(-45.0f), glm::vec3(1.0f,0.0f,0.0f));
 		const glm::vec3 lightDir = glm::vec3(lightView * glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));

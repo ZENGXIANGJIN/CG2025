@@ -11,6 +11,7 @@
 		{"id": "hm0",  "VD": "VDchar",  "model": "Mesh", "node": "Ch01_Body", "meshId": 0, "asset": "hm", "format":"ASSET"},
 		{"id": "hm1",  "VD": "VDchar",  "model": "Mesh", "node": "Ch01_Body", "meshId": 1, "asset": "hm", "format":"ASSET"},
 		{"id": "gb", "VD": "VDsimp", "model": "assets/models/gelatoBus.mgcg", "format":"MGCG"},
+		{"id": "bus", "VD": "VDsimp", "model": "assets/models/transport_bus_001_transport_bus_001.001.mgcg", "format":"MGCG"},
 		{"id": "skybox", "VD": "VDskybox", "model": "assets/models/SkyBoxCube.obj", "format":"OBJ"},
 		{"id": "scb", "VD": "VDtan", "model": "assets/models/SoccerBall.gltf", "format":"GLTF"},
 		{"id": "ground",  "VD": "VDtan",  "model": "Ground", "node": "Ground", "meshId": 0, "asset": "ct", "format":"ASSET"},
@@ -77,10 +78,14 @@
 				"scale": [1.0, 1.0, 1.25]},
 			{"id": "gb3",  "model": "gb",   "texture": ["main", "pnois"],
 				"transform": [1, 0, 0, 0,
-							  0, 1, 0, 0,
-							  0, 0, 1, -5,
-							  0, 0, 0, 1]}
-		]}, 
+					0, 1, 0, 0,
+					0, 0, 1, -5,
+					0, 0, 0, 1]},
+			{"id": "bus1",  "model": "bus",   "texture": ["main", "pnois"],
+				"translate": [0, 0, 4],
+				"eulerAngles": [0, -90, 0]
+			}
+		]},
 		{"technique": "SkyBox", "elements": [
 			{"id": "skybox",  "model": "skybox",   "texture": ["skybox"]}
 		]}, 
